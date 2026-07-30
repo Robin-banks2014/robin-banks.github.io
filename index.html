@@ -1,1 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User sign in</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        input {
+            display: block;
+            margin: 10px auto;
+            padding: 10px;
+            width: 80%;
+            font-size: 16px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .attempts {
+            color: #666;
+            margin-top: 10px;
+        }
+        .blocked {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enter Your ID</h1>
+    
+    <input id="userInput" type="text" placeholder="Username">
+    <button onclick="storeUsername()">Submit</button>
+    
+    <input id="passwordInput" type="password" placeholder="Password">
+    <button onclick="storePassword()">Submit</button>
+    <button onclick="checkCredentials()">Login</button>
+    
+    <div id="attemptDisplay" class="attempts"></div>
+    <div id="blockedMessage" class="blocked"></div>
 
+    <script>
+        // Initialize or get the attempt counter from localStorage
+        function getAttempts() {
+            let attempts = localStorage.getItem("loginAttempts");
+            if (attempts === null) {
+                attempts = 0;
+                localStorage.setItem("loginAttempts", attempts);
+            }
+            return parseInt(attempts);
+        }
+
+        // Update the attempt counter in localStorage
+        function incrementAttempts() {
+            let attempts = getAttempts();
+            attempts++;
+            localStorage.setItem("loginAttempts", attempts);
+            return attempts;
+        }
+
+        // Check if user is blocked
+        function isUserBlocked() {
+            return localStorage.getItem("isBlocked") === "true";
+        }
+
+        // Reset attempts (call this on successful login)
+        function resetAttempts() {
+            localStorage.setItem("loginAttempts", "0");
+            localStorage.setItem("isBlocked", "false");
+        }
+
+        // Display current attempts
+        function updateAttemptDisplay() {
+            let attempts = getAttempts();
+            let display = document.getElementById("attemptDisplay");
+            let blockedMsg = document.getElementById("blockedMessage");
+            
+            if (isUserBlocked()) {
+                display.textContent = "🚫 Device Blocked";
+                blockedMsg.textContent = "Too many failed attempts!";
+            } else {
+                let remaining = 5 - attempts;
+                display.textContent = `Attempts remaining: ${remaining} of 5`;
+                blockedMsg.textContent = "";
+            }
+        }
+
+        function storeUsername() {
+            let username = document.getElementById("userInput").value;
+            if (username.trim()) {
+                localStorage.setItem("username", username);
+                alert("Username saved!");
+            } else {
+                alert("Please enter a username.");
+            }
+        }
+
+        function getUsername() {
+            return localStorage.getItem("username");
+        }
+
+        function storePassword() {
+            let password = document.getElementById("passwordInput").value;
+            if (password.trim()) {
+                localStorage.setItem("password", password);
+                alert("Password saved!");
+            } else {
+                alert("Please enter a password.");
+            }
+        }
+
+        function getPassword() {
+            return localStorage.getItem("password");
+        }
+
+        function checkCredentials() {
+            // Check if user is already blocked
+            if (isUserBlocked()) {
+                alert("Your account is locked due to too many failed attempts.");
+                updateAttemptDisplay();
+                return;
+            }
+
+            let storedUsername = getUsername();
+            let storedPassword = getPassword();
+            let attempts = getAttempts();
+
+            // Check if username/password are set
+            if (!storedUsername || !storedPassword) {
+                alert("Please set your username and password first.");
+                return;
+            }
+
+            // Check credentials
+            if (storedUsername === "admin" && storedPassword === "password123") {
+                // Success - reset attempts and log in
+                resetAttempts();
+                localStorage.setItem("isLoggedIn", "true");
+                alert("Login successful!");
+                updateAttemptDisplay();
+                window.location.href = "home.html";
+            } else {
+                // Failed attempt
+                attempts = incrementAttempts();
+                alert(`Invalid credentials. Attempt ${attempts} of 5.`);
+                
+                // Check if max attempts reached
+                if (attempts >= 5) {
+                    localStorage.setItem("isBlocked", "true");
+                    alert("Too many failed attempts! Your account has been locked.");
+                    updateAttemptDisplay();
+                } else {
+                    updateAttemptDisplay();
+                }
+            }
+        }
+
+        // Initialize display when page loads
+        window.onload = function() {
+            updateAttemptDisplay();
+            
+            // Auto-fill stored values if they exist
+            let savedUsername = localStorage.getItem("username");
+            let savedPassword = localStorage.getItem("password");
+            if (savedUsername) {
+                document.getElementById("userInput").value = savedUsername;
+            }
+            if (savedPassword) {
+                document.getElementById("passwordInput").value = savedPassword;
+            }
+        };
+    </script>
+</body>
+</html>
