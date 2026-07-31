@@ -1,14 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-</head>
-<body>
-    <h1>Home Page</h1>
-    <p>Welcome to the home page!</p>
-    <p>You have successfully logged in.</p>
-    <p><a href="login.html">Logout</a></p>
-</body>
-</html>
+---
+layout: default
+title: My Private Journal Feed
+---
+
+<h1>Journal Entries</h1>
+
+<ul>
+  {% for post in site.posts %}
+    <li>
+      <span class="post-date">{{ post.date | date: "%b %d, %Y" }}</span> — 
+      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+    </li>
+  {% endfor %}
+</ul>
